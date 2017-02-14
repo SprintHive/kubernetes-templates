@@ -41,7 +41,7 @@ items:
     ports:
     - port: 80
       protocol: TCP
-      targetPort: 9090
+      targetPort: 4180
     selector:
       project: fabric8-console
       provider: fabric8
@@ -167,6 +167,7 @@ items:
           - -s
           - /k8s/=https://kubernetes:443/
           - --compress
+          - -l
           env:
           - name: GITHUB_OAUTH_CLIENT_SECRET
             valueFrom:
@@ -194,9 +195,6 @@ items:
                 name: fabric8
           image: 192.168.99.1:5000/fabric8-console:2.2.199
           name: fabric8
-          ports:
-          - containerPort: 9090
-            name: http
           resources:
             limits:
               cpu: "0"
@@ -204,6 +202,97 @@ items:
             requests:
               cpu: "0"
               memory: "0"
+        - name: oauth2-proxy
+          image: 192.168.99.1:5000/oauth2-proxy:0.02
+          command: ["oauth2_proxy"]
+          args:
+          - -http-address=$(HTTP_ADDRESS)
+          - -provider=$(PROVIDER)
+          - -email-domain=$(EMAIL_DOMAIN)
+          - -upstream=$(UPSTREAM)
+          - -cookie-secret=$(COOKIE_SECRET)
+          - -cookie-expire=$(COOKIE_EXPIRE)
+          - -cookie-secure=$(COOKIE_SECURE)
+          - -google-service-account-json=$(GOOGLE_ACCOUNT_JSON)
+          - -client-id=$(CLIENT_ID)
+          - -client-secret=$(CLIENT_SECRET)
+          - -google-group=$(GOOGLE_GROUP)
+          - -google-admin-email=$(GOOGLE_ADMIN_EMAIL)
+          - -pass-access-token=$(PASS_ACCESS_TOKEN)
+          - -pass-basic-auth=$(PASS_BASIC_AUTH)
+          env:
+          - name: HTTP_ADDRESS
+            valueFrom:
+              configMapKeyRef:
+                key: http-address
+                name: oauth2-proxy-config
+          - name: PROVIDER
+            valueFrom:
+              configMapKeyRef:
+                key: provider
+                name: oauth2-proxy-config
+          - name: EMAIL_DOMAIN
+            valueFrom:
+              configMapKeyRef:
+                key: email-domain
+                name: oauth2-proxy-config
+          - name: UPSTREAM
+            valueFrom:
+              configMapKeyRef:
+                key: upstream
+                name: oauth2-proxy-config
+          - name: COOKIE_SECRET
+            valueFrom:
+              configMapKeyRef:
+                key: cookie-secret
+                name: oauth2-proxy-config
+          - name: COOKIE_EXPIRE
+            valueFrom:
+              configMapKeyRef:
+                name: oauth2-proxy-config
+                key: cookie-expire
+          - name: COOKIE_SECURE
+            valueFrom:
+              configMapKeyRef:
+                name: oauth2-proxy-config
+                key: cookie-secure
+          - name: GOOGLE_ACCOUNT_JSON
+            valueFrom:
+              configMapKeyRef:
+                name: oauth2-proxy-config
+                key: google-service-account-json
+          - name: CLIENT_ID
+            valueFrom:
+              configMapKeyRef:
+                name: oauth2-proxy-config
+                key: client-id
+          - name: CLIENT_SECRET
+            valueFrom:
+              configMapKeyRef:
+                key: client-secret
+                name: oauth2-proxy-config
+          - name: GOOGLE_GROUP
+            valueFrom:
+              configMapKeyRef:
+                key: google-group
+                name: oauth2-proxy-config
+          - name: GOOGLE_ADMIN_EMAIL
+            valueFrom:
+              configMapKeyRef:
+                key: google-admin-email
+                name: oauth2-proxy-config
+          - name: PASS_ACCESS_TOKEN
+            valueFrom:
+              configMapKeyRef:
+                key: pass-access-token
+                name: oauth2-proxy-config
+          - name: PASS_BASIC_AUTH
+            valueFrom:
+              configMapKeyRef:
+                key: pass-basic-auth
+                name: oauth2-proxy-config
+          ports:
+          - containerPort: 4180
         - image: 192.168.99.1:5000/jenkinshift:2.2.199
           name: jenkinshift
           ports:
